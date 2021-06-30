@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactPDF, { Page, Text, View, Document, StyleSheet,Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet,Font } from '@react-pdf/renderer';
 import font from '../fonts/cour.ttf'
 
 // Font.register({family:'Courier New',src:'https://allfont.es/allfont.css?fonts=courier-new'})

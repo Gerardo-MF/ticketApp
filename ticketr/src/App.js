@@ -1,8 +1,8 @@
-import ReactPDF, { PDFViewer,PDFDownloadLink } from '@react-pdf/renderer'
+import {PDFDownloadLink } from '@react-pdf/renderer'
 import MyDocument from './components/Document';
 import './App.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faFile,faFileExcel} from '@fortawesome/free-regular-svg-icons'
+import {faFile} from '@fortawesome/free-regular-svg-icons'
 import {Modal,Badge, ModalBody, ModalHeader, ModalFooter,Table, DropdownToggle, DropdownMenu, DropdownItem, UncontrolledDropdown} from 'reactstrap';
 import { useState,useEffect } from 'react';
 
@@ -13,9 +13,11 @@ const App = ()=>{
     const [list,SetList] = useState(listData)
     const [errors,SetErrors] = useState('')
     const [total,setTotal] = useState('')
+    const [fileName,setFileName] = useState('')
     const [modalEdit, setModalEdit] = useState(false);
     const [modalDelete, setModalDelete] = useState(false);
     const [modalAdd, setModalAdd] = useState(false);
+    const [modalFile, setModalFile] = useState(false);
 
 
     const [selectedProduct, setSelectedProduct] = useState({
@@ -26,9 +28,16 @@ const App = ()=>{
         quanXprice:0.00
       });
 
+      useEffect(()=>{
+       let listStorage =JSON.parse(localStorage.getItem('list'))
+       if (listStorage) {
+          SetList(listStorage)         
+       }
+      },[])
       
     useEffect(()=>{
       getTotal()
+      saveToLocalStorage()
     },[total])
 
       const handleChange=e=>{
@@ -37,6 +46,15 @@ const App = ()=>{
           ...prevState,
           [name]: value
         }));
+      }
+
+      const saveToLocalStorage = ()=> {
+        localStorage.setItem('list',JSON.stringify(list))
+      }
+
+      const handleChangeFile = (e)=> {
+        const {value} = e.target;
+        setFileName(value)
       }
 
       const getTotal = () => {
@@ -48,6 +66,11 @@ const App = ()=>{
           setSelectedProduct(null)
           setModalAdd(true)
       }
+
+      const openFileModal = () =>{
+        setModalFile(true)
+    }
+
 
       const addProduct =()=>{
           if (selectedProduct==null) {
@@ -142,12 +165,11 @@ const App = ()=>{
 
 
   return (
-  <div style={{ height: '100%', position: 'absolute', left: '0px', width: '100%', overflow: 'scroll'}} >
-   <PDFDownloadLink document={<MyDocument listProducts={list}/>} fileName={new Date().toLocaleTimeString()} className="btnFabPrint">
-     {({ blob, url, loading, error }) =>
-       loading ? <FontAwesomeIcon icon={faFileExcel}></FontAwesomeIcon> :   <FontAwesomeIcon icon={faFile}></FontAwesomeIcon>
-    }
-  </PDFDownloadLink>
+  <div style={{ height: '100%', position: 'absolute', left: '0px', width: '100%', overflow: 'auto'}} >
+   
+   <button className='btnFabPrint' onClick={()=>openFileModal()}>
+   <FontAwesomeIcon icon={faFile}></FontAwesomeIcon>
+    </button>  
 
   <div className="total">
     <h3><Badge color="dark">{total}</Badge></h3>
@@ -168,8 +190,9 @@ const App = ()=>{
         </thead>
         <tbody>
             {
+              
                 list.map(element=>(
-                    <tr>
+                    <tr key={element.id}>
                         <td >{element.name}</td>
                         <td>{element.quantity}</td>
                         <td>{
@@ -342,6 +365,34 @@ const App = ()=>{
             onClick={()=>setModalDelete(false)}
           >
             No
+          </button>
+        </ModalFooter>
+      </Modal>
+
+      <Modal isOpen={modalFile} centered>
+        <ModalBody>
+         <h4>Nombre del archivo</h4>
+         <input
+              className="form-control"
+              type="text"
+              value={fileName}
+              onChange={handleChangeFile}
+            />
+            <br />
+        </ModalBody>
+        <ModalFooter>
+
+        <PDFDownloadLink document={<MyDocument listProducts={list}/>} fileName={fileName} className="btn btn-primary">
+          {({ blob, url, loading, error }) =>
+             loading ? "Cargando..." :  "Descargar"
+          }
+          </PDFDownloadLink>
+
+          <button
+            className="btn btn-danger"
+            onClick={()=>setModalFile(false)}
+          >
+            Cancelar
           </button>
         </ModalFooter>
       </Modal>
